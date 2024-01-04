@@ -22,5 +22,11 @@ where id = ?;
 
 
 -- name: CreateCourse :exec
-insert into courses (id, name, description, category_id)
-values (?,?,?,?);
+insert into courses (id, name, description, category_id, price)
+values (?,?,?,?,?);
+
+
+
+-- name: ListCourses :many
+select co.*, ca.name as category_name
+from courses co join categories ca on co.category_id = ca.id

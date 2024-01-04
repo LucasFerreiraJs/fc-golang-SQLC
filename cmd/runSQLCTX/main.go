@@ -1,9 +1,10 @@
 package main
 
+// "github.com/google/uuid"
 import (
 	"context"
 	"database/sql"
-
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lucasferreirajs/17-SQLC/internal/db"
 )
@@ -17,6 +18,7 @@ type CourseParams struct {
 	ID string
 	Name string
 	Description sql.NullString
+	Price float64
 }
 
 type CategoryParams struct {
@@ -47,6 +49,7 @@ func (c *CourseDB) callTx(ctx context.Context, fn func(*db.Queries) error) error
 		errRb := tx.Rollback()
 		if errRb != nil {
 			return fmt.Errorf("Error on Rollback: %v, original error: %w", errRb, err)
+
 		}
 		return err
 	}
@@ -62,6 +65,7 @@ func (c *CourseDB) CreateCourseAndCategory(ctx context.Context, argsCategory Cat
 			ID: argsCategory.ID,
 			Name: argsCategory.Name,
 			Description: argsCategory.Description,
+
 		})
 
 		if err !=nil {
@@ -73,6 +77,7 @@ func (c *CourseDB) CreateCourseAndCategory(ctx context.Context, argsCategory Cat
 			Name: argsCourse.Name,
 			Description: argsCourse.Description,
 			CategoryID: argsCategory.ID,
+			Price: argsCourse.Price,
 		})
 
 		if err !=nil {
@@ -101,5 +106,33 @@ func main() {
 
 	queries := db.New(dbConn)
 
+	courses, err := queries.ListCourses(ctx)
+	if err !=nil {
+		panic(err)
+	}
 
+	for _, course := range courses {
+		fmt.Printf("Category: %s, Course ID: %s, Course Name: %s, Course Description: %s, Course Price: %f \n", course.CategoryName, course.ID, course.Name, course.Description.String, course.Price)
+	}
+	/*
+	courseArgs := CourseParams{
+		ID: uuid.New().String(),
+		Name: "GO",
+		Description: sql.NullString{String: "Go course", Valid: true},
+		Price: 10.98,
+	}
+
+	categoryArgs := CategoryParams{
+		ID: uuid.New().String(),
+		Name: "Backend",
+		Description: sql.NullString{String: "Backend courses", Valid: true},
+	}
+
+
+	courseDB := NewCourseDB(dbConn)
+	err = courseDB.CreateCourseAndCategory(ctx , categoryArgs, courseArgs)
+	if  err != nil {
+		panic(err)
+	}
+	*/
 }
